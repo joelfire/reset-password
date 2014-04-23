@@ -1,3 +1,4 @@
+// Copyright 2014 TIBCO Software Inc. All Rights Reserved.
 package com.datasynapse.gridserver.tools;
 
 import java.io.BufferedReader;
@@ -15,12 +16,12 @@ import org.hsqldb.DatabaseManager;
 
 import com.datasynapse.commons.security.MessageDigestGenerator;
 import com.datasynapse.commons.util.ConversionUtils;
-import com.datasynapse.commons.util.StringUtils;
 import com.livecluster.admin.beans.UserInfo;
 import com.livecluster.ext.HsqldbAdminPlugin;
 
 public class RootPasswordUpdater {
     private static PrintStream out = System.out;
+    
     public static void main(String[] args)  {
         usage();
         RootPasswordUpdater up = new RootPasswordUpdater();
@@ -47,19 +48,23 @@ public class RootPasswordUpdater {
         out.println();
         out.println("IMPORTANT: You must shut down the Director before proceeding!");
         out.println("Press any key to continue");
-        
+
+        int rtn = 0;
         try {
             up.readInput();
             up.run(path);
             out.println("Password sucessfully updated.");
         } catch (IOException e) {
-            System.out.println("Could not update: " + e.getMessage());
+            out.println("Could not update: " + e.getMessage());
+            rtn = 2;
         } catch (SQLException e) {
-            System.out.println("Could not update: " + e.getMessage());
+            out.println("Could not update: " + e.getMessage());
+            rtn = 3;
         } catch (RPUException e) {
-            System.out.println("Could not update: " + e.getMessage());
+            out.println("Could not update: " + e.getMessage());
+            rtn = 4;
         }
-        
+        System.exit(rtn);
     }
     
     private static void usage() {
@@ -182,7 +187,6 @@ public class RootPasswordUpdater {
         plugin.setJdbcServerPort(5001);
         plugin.setName(new File(dbdir).getName());
         plugin.setDriver(driver);
-        plugin.setUrl(StringUtils.replace(url, "%port%", String.valueOf(plugin.getJdbcServerPort())));
         try {
             Class.forName(plugin.getDriver());
         } catch (ClassNotFoundException e) {
